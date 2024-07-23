@@ -57,8 +57,8 @@ func (f *funcMap) Map() template.FuncMap {
 		"noescape": func(str string) template.HTML {
 			return template.HTML(str)
 		},
-		"proxyFilter": func(data string) string {
-			return mediaproxy.RewriteDocumentWithRelativeProxyURL(f.router, data)
+		"proxyFilter": func(data string, feedSiteURL ...string) string {
+			return mediaproxy.RewriteDocumentWithRelativeProxyURL(f.router, data, feedSiteURL...)
 		},
 		"proxyURL": func(link string) string {
 			mediaProxyMode := config.Opts.MediaProxyMode()

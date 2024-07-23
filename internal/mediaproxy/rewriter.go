@@ -16,13 +16,17 @@ import (
 
 type urlProxyRewriter func(router *mux.Router, url string) string
 
-func RewriteDocumentWithRelativeProxyURL(router *mux.Router, htmlDocument string) string {
-	return genericProxyRewriter(router, ProxifyRelativeURL, htmlDocument)
+func RewriteDocumentWithRelativeProxyURL(router *mux.Router, htmlDocument string, feedSiteURL ...string) string {
+	proxifyFunction := func(router *mux.Router, mediaURL string) string {
+		return ProxifyRelativeURL(router, mediaURL, feedSiteURL...)
+	}
+
+	return genericProxyRewriter(router, proxifyFunction, htmlDocument)
 }
 
-func RewriteDocumentWithAbsoluteProxyURL(router *mux.Router, host, htmlDocument string) string {
+func RewriteDocumentWithAbsoluteProxyURL(router *mux.Router, host, htmlDocument string, feedSiteURL ...string) string {
 	proxifyFunction := func(router *mux.Router, url string) string {
-		return ProxifyAbsoluteURL(router, host, url)
+		return ProxifyAbsoluteURL(router, host, url, feedSiteURL...)
 	}
 	return genericProxyRewriter(router, proxifyFunction, htmlDocument)
 }

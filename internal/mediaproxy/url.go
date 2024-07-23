@@ -18,7 +18,7 @@ import (
 	"miniflux.app/v2/internal/config"
 )
 
-func ProxifyRelativeURL(router *mux.Router, mediaURL string) string {
+func ProxifyRelativeURL(router *mux.Router, mediaURL string, feedSiteURL ...string) string {
 	if mediaURL == "" {
 		return ""
 	}
@@ -30,10 +30,16 @@ func ProxifyRelativeURL(router *mux.Router, mediaURL string) string {
 	mac := hmac.New(sha256.New, config.Opts.MediaProxyPrivateKey())
 	mac.Write([]byte(mediaURL))
 	digest := mac.Sum(nil)
+
+	if len(feedSiteURL) > 0 {
+		referer := feedSiteURL[0]
+		return route.Path(router, "proxyWithReferer", "encodedDigest", base64.URLEncoding.EncodeToString(digest), "encodedURL", base64.URLEncoding.EncodeToString([]byte(mediaURL)), "encodedReferer", base64.URLEncoding.EncodeToString([]byte(referer)))
+	}
+
 	return route.Path(router, "proxy", "encodedDigest", base64.URLEncoding.EncodeToString(digest), "encodedURL", base64.URLEncoding.EncodeToString([]byte(mediaURL)))
 }
 
-func ProxifyAbsoluteURL(router *mux.Router, host, mediaURL string) string {
+func ProxifyAbsoluteURL(router *mux.Router, host, mediaURL string, feedSiteURL ...string) string {
 	if mediaURL == "" {
 		return ""
 	}
@@ -42,7 +48,7 @@ func ProxifyAbsoluteURL(router *mux.Router, host, mediaURL string) string {
 		return proxifyURLWithCustomProxy(mediaURL, customProxyURL)
 	}
 
-	proxifiedUrl := ProxifyRelativeURL(router, mediaURL)
+	proxifiedUrl := ProxifyRelativeURL(router, mediaURL, feedSiteURL...)
 	scheme := "http"
 	if config.Opts.HTTPS {
 		scheme = "https"
